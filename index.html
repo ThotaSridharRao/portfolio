@@ -778,29 +778,39 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- ALL YOUR JAVASCRIPT CODE GOES WITHIN THIS LISTENER ---
+
+            // --- Element Selections (Declare all variables at the beginning of the listener) ---
             const loaderOverlay = document.querySelector('.loader-overlay');
-            const body = document.body;
+            const body = document.body; // body is generally guaranteed to exist
             const navCards = document.querySelectorAll('.nav-card');
             const sections = document.querySelectorAll('.section');
+            const contactForm = document.getElementById('contactForm');
+            const formStatusMessage = document.getElementById('form-status-message');
+
 
             // --- Page Loading Animation ---
-            // Hide loader and enable scroll after everything is loaded
-            window.addEventListener('load', () => {
-                setTimeout(() => {
-                    loaderOverlay.classList.add('hidden');
-                    // Allow scroll on the body
-                    body.classList.add('scroll-unlocked');
-                    // Set first section as active to trigger its animations if not already
-                    if (sections.length > 0) {
-                        sections[0].classList.add('is-visible');
-                    }
-                }, 500); // Wait a bit before hiding to ensure smooth transition
-                setTimeout(() => {
-                    if (loaderOverlay) { // Check if element still exists before removing
-                        loaderOverlay.remove(); // Remove loader from DOM after transition
-                    }
-                }, 1300); // Total transition time (0.8s opacity + 0.5s delay)
-            });
+            if (loaderOverlay) { // Add null check for loaderOverlay
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        if (loaderOverlay) { // Defensive check
+                            loaderOverlay.classList.add('hidden');
+                        }
+                        if (body) { // Defensive check for body, though rarely null
+                           body.classList.add('scroll-unlocked');
+                        }
+                        if (sections.length > 0 && sections[0]) { // Check length and existence of element at index 0
+                            sections[0].classList.add('is-visible');
+                        }
+                    }, 500); // Wait a bit before hiding to ensure smooth transition
+                    setTimeout(() => {
+                        if (loaderOverlay) { // Check if element still exists before removing
+                            loaderOverlay.remove(); // Remove loader from DOM after transition
+                        }
+                    }, 1300); // Total transition time (0.8s opacity + 0.5s delay)
+                });
+            }
+
 
             // --- Sidebar Navigation ---
             navCards.forEach(card => {
@@ -819,7 +829,8 @@
                     if (targetSection) {
                         // For mobile/tablet, if sidebar is stacked, scroll just below the sidebar
                         if (window.innerWidth <= 768) {
-                            const sidebarHeight = document.querySelector('.sidebar').offsetHeight;
+                            const sidebar = document.querySelector('.sidebar'); // Get sidebar here for height
+                            const sidebarHeight = sidebar ? sidebar.offsetHeight : 0; // Check if sidebar exists
                             // Calculate scroll position to place targetSection just below the sticky/top sidebar
                             const offsetTop = targetSection.getBoundingClientRect().top + window.scrollY - sidebarHeight;
                             window.scrollTo({ top: offsetTop, behavior: 'smooth' });
@@ -833,8 +844,8 @@
                 });
             });
 
+
             // --- Section Animations on Scroll (Intersection Observer) ---
-            // Options for the Intersection Observer
             const sectionObserverOptions = {
                 root: null, // relative to the viewport
                 rootMargin: '0px',
@@ -854,18 +865,21 @@
                 });
             }, sectionObserverOptions);
 
-            // Observe each section
             sections.forEach(section => {
                 sectionObserver.observe(section);
             });
 
             // Initialize first section as active and visible when JS loads
             const firstSection = document.getElementById('home');
-            if (firstSection) {
+            if (firstSection) { // Null check for firstSection
                 firstSection.classList.add('is-visible');
                 // Ensure the initial active nav card is set
-                document.querySelector('.nav-card[href="#home"]').classList.add('active');
+                const homeNavCard = document.querySelector('.nav-card[href="#home"]');
+                if (homeNavCard) { // Null check for homeNavCard
+                    homeNavCard.classList.add('active');
+                }
             }
+
 
             // --- Update active nav card on scroll ---
             const updateActiveNav = () => {
@@ -873,11 +887,9 @@
 
                 sections.forEach(section => {
                     const rect = section.getBoundingClientRect();
-                    // Determine if the section is in the upper half of the viewport, with some offset
-                    // This makes the active state switch a bit earlier when scrolling down
-                    // Adding a dynamic offset for the sidebar height if it's sticky/at top
-                    const sidebarHeight = window.innerWidth <= 768 ? document.querySelector('.sidebar').offsetHeight : 0;
-                    
+                    const sidebar = document.querySelector('.sidebar'); // Get sidebar here for height
+                    const sidebarHeight = sidebar ? sidebar.offsetHeight : 0; // Check if sidebar exists
+
                     if (rect.top <= (window.innerHeight / 2 + sidebarHeight / 2) && rect.bottom >= (window.innerHeight / 2 + sidebarHeight / 2)) {
                         currentSectionId = section.id;
                     }
@@ -891,54 +903,60 @@
                 });
             };
 
-            // Listen for scroll events on the window (since body handles scroll)
             window.addEventListener('scroll', updateActiveNav);
-            // Also call it once on load to ensure correct initial state
-            updateActiveNav();
-        });
-        // Inside your existing DOMContentLoaded listener in script.js (or index.html's script)
-const contactForm = document.getElementById('contactForm');
-const formStatusMessage = document.getElementById('form-status-message');
+            updateActiveNav(); // Call once on load for initial state
 
-if (contactForm) {
-    contactForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Prevent default form submission
 
-        formStatusMessage.textContent = 'Sending message...';
-        formStatusMessage.style.color = 'var(--accent-color)'; // Default color for sending
+            // --- Contact Form Submission Logic ---
+            if (contactForm) { // Null check for contactForm
+                contactForm.addEventListener('submit', async (e) => {
+                    e.preventDefault(); // Prevent default form submission
 
-        const formData = new FormData(contactForm);
-        const data = Object.fromEntries(formData.entries());
+                    if (formStatusMessage) { // Null check for formStatusMessage
+                        formStatusMessage.textContent = 'Sending message...';
+                        formStatusMessage.style.color = 'var(--accent-color)'; // Default color for sending
+                    }
 
-        try {
-            const response = await fetch('/api/contact', { // Your backend endpoint
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
+                    // Create FormData object directly from the form
+                    const formData = new FormData(contactForm); // This creates the multipart/form-data
 
-            if (response.ok) {
-                formStatusMessage.textContent = 'Message sent successfully!';
-                formStatusMessage.style.color = 'green';
-                contactForm.reset(); // Clear the form
-            } else {
-                const errorData = await response.json();
-                formStatusMessage.textContent = `Error: ${errorData.message || 'Failed to send message.'}`;
-                formStatusMessage.style.color = 'red';
+                    try {
+                        const response = await fetch('/api/contact', { // Your backend endpoint
+                            method: 'POST',
+                            // IMPORTANT: DO NOT set 'Content-Type' header manually when sending FormData.
+                            // The browser will set it correctly to 'multipart/form-data' including the boundary.
+                            body: formData, // Send the FormData object directly
+                        });
+
+                        if (response.ok) {
+                            if (formStatusMessage) {
+                                formStatusMessage.textContent = 'Message sent successfully!';
+                                formStatusMessage.style.color = 'green';
+                            }
+                            contactForm.reset(); // Clear the form
+                        } else {
+                            const errorData = await response.json();
+                            if (formStatusMessage) {
+                                formStatusMessage.textContent = `Error: ${errorData.message || 'Failed to send message.'}`;
+                                formStatusMessage.style.color = 'red';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Network error:', error);
+                        if (formStatusMessage) {
+                            formStatusMessage.textContent = 'Error: Could not connect to the server.';
+                            formStatusMessage.style.color = 'red';
+                        }
+                    } finally {
+                        setTimeout(() => {
+                            if (formStatusMessage) {
+                                formStatusMessage.textContent = ''; // Clear message after a few seconds
+                            }
+                        }, 5000);
+                    }
+                });
             }
-        } catch (error) {
-            console.error('Network error:', error);
-            formStatusMessage.textContent = 'Error: Could not connect to the server.';
-            formStatusMessage.style.color = 'red';
-        } finally {
-            setTimeout(() => {
-                formStatusMessage.textContent = ''; // Clear message after a few seconds
-            }, 5000);
-        }
-    });
-}
+        });
     </script>
 </body>
 </html>
