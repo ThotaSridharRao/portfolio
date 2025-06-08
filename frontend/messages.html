@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Contact Messages</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Inherit/Re-use styles from your portfolio theme */
+        :root {
+            --bg-dark: #1a1a2e;
+            --bg-medium: #1f2038;
+            --text-light: #e0e0e0;
+            --text-grey: #a0a0a0;
+            --accent-color: rgb(0, 85, 255);
+            --accent-dark: rgb(0, 70, 200);
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --transition-speed: 0.5s;
+            --transition-ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background-color: var(--bg-medium);
+            border-radius: 10px;
+            box-shadow: 0 8px 20px var(--shadow-color);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .messages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .message-card {
+            background-color: var(--bg-dark);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .message-card h3 {
+            color: var(--text-light);
+            margin-bottom: 5px;
+            font-size: 1.3em;
+        }
+
+        .message-card .email {
+            color: var(--accent-color);
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        .message-card .email a {
+             color: var(--accent-color); /* Ensure link color remains consistent */
+        }
+
+        .message-card p {
+            color: var(--text-grey);
+            font-size: 1em;
+            margin-bottom: 15px;
+            flex-grow: 1; /* Allows message content to take available space */
+        }
+
+        .message-card .timestamp {
+            font-size: 0.8em;
+            color: var(--text-grey);
+            text-align: right;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 10px;
+        }
+
+        .no-messages {
+            text-align: center;
+            color: var(--text-grey);
+            font-size: 1.2em;
+            padding: 50px;
+        }
+
+        .back-link {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: var(--accent-color);
+            color: var(--text-light);
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: var(--accent-dark);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            .messages-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Contact Messages</h1>
+        <div id="messages-display" class="messages-grid">
+            <!-- Messages will be loaded here by JavaScript -->
+        </div>
+        <div id="no-messages-alert" class="no-messages" style="display: none;">
+            No messages yet.
+        </div>
+    </div>
+    <a href="index.html" class="back-link">Back to Portfolio</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const messagesDisplay = document.getElementById('messages-display');
+            const noMessagesAlert = document.getElementById('no-messages-alert');
+
+            // --- Dummy Data (replace this with actual backend fetch) ---
+            const dummyMessages = [
+                {
+                    name: "Alice Smith",
+                    email: "alice.s@example.com",
+                    message: "Hi Sridhar, I saw your portfolio and was really impressed with your e-commerce project. I'm looking for a frontend developer for a similar project. Can we connect?",
+                    timestamp: "2023-10-26T10:30:00Z"
+                },
+                {
+                    name: "Bob Johnson",
+                    email: "bob.j@mail.com",
+                    message: "Hey! Your task management app looks super clean. I'm a UI/UX designer and would love to collaborate on a new idea if you're open to it.",
+                    timestamp: "2023-10-25T15:45:00Z"
+                },
+                {
+                    name: "Charlie Brown",
+                    email: "charlie@webdev.org",
+                    message: "Great work on the personal blog site! It's refreshing to see a focus on performance and readability. Do you have any tips on optimizing vanilla JS apps?",
+                    timestamp: "2023-10-24T08:00:00Z"
+                }
+            ];
+            // --- End Dummy Data ---
+
+            function displayMessages(messages) {
+                messagesDisplay.innerHTML = ''; // Clear existing messages
+                if (messages.length === 0) {
+                    noMessagesAlert.style.display = 'block';
+                } else {
+                    noMessagesAlert.style.display = 'none';
+                    messages.forEach(msg => {
+                        const messageCard = document.createElement('div');
+                        messageCard.classList.add('message-card');
+
+                        const date = new Date(msg.timestamp);
+                        const formattedDate = date.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+
+                        messageCard.innerHTML = `
+                            <h3>${msg.name}</h3>
+                            <div class="email"><a href="mailto:${msg.email}">${msg.email}</a></div>
+                            <p>${msg.message}</p>
+                            <div class="timestamp">${formattedDate}</div>
+                        `;
+                        messagesDisplay.appendChild(messageCard);
+                    });
+                }
+            }
+
+            // Call displayMessages with dummy data on page load
+            displayMessages(dummyMessages);
+
+            // In a real scenario, you would fetch data like this:
+            /*
+            fetch('/api/messages') // Your backend endpoint
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(messages => {
+                    displayMessages(messages);
+                })
+                .catch(error => {
+                    console.error('Error fetching messages:', error);
+                    messagesDisplay.innerHTML = '<p style="color: red; text-align: center;">Failed to load messages.</p>';
+                });
+            */
+        });
+    </script>
+</body>
+</html>
